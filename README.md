@@ -1,5 +1,4 @@
 <img src="/docs/logo.svg" width="200">
-## About
 
 A platform for creating custom midi controllers.
 
