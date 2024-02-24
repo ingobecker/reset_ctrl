@@ -2,7 +2,7 @@
 
 A platform for creating custom midi controllers.
 
-⚠️  ** Warning** ⚠️ : I use this project to learn rust. It's not meant to be used in production. Expect things to break and code to undergo heavy refactoring.
+⚠️  **Warning** ⚠️ : I use this project to learn rust. It's not meant to be used in production. Expect things to break and code to undergo heavy refactoring.
 
 ## Background
 
