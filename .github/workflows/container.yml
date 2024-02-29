@@ -1,0 +1,33 @@
+env:
+  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_PASSWORD: ${{ github.token }}
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  IMAGE_NAME: reset-ctrl
+  IMAGE_TAG: ${{ github.event_name == 'pull_request' && 'pr-' || 'latest' }}
+  IMAGE_TAG_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.number }}
+on:
+  pull_request:
+    types: [syncronize]
+    paths:
+      - Containerfile
+      - Cargo.lock
+      - rust-toolchain.toml
+      - build.rs
+  push:
+    branches:
+      - main
+    paths:
+      - Containerfile
+      - Cargo.lock
+      - rust-toolchain.toml
+      - build.rs
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository to the runner
+        uses: actions/checkout@v4
+      - name: Build container image
+        run: podman build -t ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR} .
+      - name: Push container image
+        run: podman push --creds=${REGISTRY_USER}:${REGISTRY_PASSWORD} -t ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR}
