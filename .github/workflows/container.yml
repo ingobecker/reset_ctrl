@@ -21,6 +21,8 @@ on:
 jobs:
   container:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - name: Check out the repository to the runner
         uses: actions/checkout@v4
