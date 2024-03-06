@@ -22,7 +22,7 @@ jobs:
       - name: PR commits + 1
         run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> "${GITHUB_ENV}"
 
-      - name: Check out only PR branch and its commits
+      - name: Check out PR branch and its commits
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
@@ -32,21 +32,10 @@ jobs:
         run: |
           git fetch origin ${{ github.event.pull_request.base.ref }}
 
-      - name: Show commits for debugging
-        run: git log -4
-
       - name: Check for container rebuild
         if: ${{ github.event.before != '' && github.event.after != '' }}
         run: |
           (git log ${{ github.event.before }}..${{ github.event.after }} --pretty="format:" --name-only | sort -u | grep -x -E "${CONTAINER_REBUILD_ON_FILES_CHANGED}" && echo "REBUILD_CONTAINER=1" >> ${GITHUB_ENV}) || true
-
-      - name: Debug CONTAINER_REBUILD_ON_FILES_CHANGED check
-        run: |
-          echo "################################# Changed files detected: " $(git log ${{ github.event.before }}..${{ github.event.after }} --pretty="format:" --name-only | sort -u | grep -x -E "${CONTAINER_REBUILD_ON_FILES_CHANGED}")
-
-      - name: Debug REBUILD_CONTAINER
-        run: |
-          echo "################################# REBUILD_CONTAINER: ${REBUILD_CONTAINER}"
 
       - name: Build container image
         if: ${{ env.REBUILD_CONTAINER != '' }}
@@ -75,15 +64,6 @@ jobs:
       - name: Try to pull latest image if no PR specific image was found
         if: ${{ env.USE_LATEST_IMAGE != '' }}
         run: podman pull --creds=${REGISTRY_USER}:${REGISTRY_PASSWORD} ${RUN_IMAGE_NAME}
-
-      - name: Debug UID
-        run: podman run --rm --userns keep-id --group-add keep-groups -v .:/usr/src/app:Z ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR} id
-
-      - name: Debug UID
-        run: podman run --rm --userns keep-id --group-add keep-groups -v .:/usr/src/app:Z ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR} ls -lha
-
-      - name: Show rust versions
-        run: podman container runlabel shell ${RUN_IMAGE_NAME} -- rustup show
 
       - name: Check formatting
         run: podman container runlabel shell ${RUN_IMAGE_NAME} -- cargo fmt --check
