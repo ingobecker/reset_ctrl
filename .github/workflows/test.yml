@@ -20,6 +20,9 @@ jobs:
       - name: Check out the repository to the runner
         uses: actions/checkout@v4
 
+      - name: Show commits for debugging
+        run: git log -4
+
       - name: Check for container rebuild
         if: ${{ github.event.before != '' && github.event.after != '' }}
         run: |
