@@ -65,7 +65,10 @@ jobs:
         run: id
 
       - name: Debug UID
-        run: podman ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR}
+        run: podman run --rm ---userns keep-id --group-add keep-groups -v .:/usr/src/app:Z ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR} id
+
+      - name: Debug UID
+        run: podman run --rm ---userns keep-id --group-add keep-groups -v .:/usr/src/app:Z ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR} ls -lha
 
       - name: Set image name
         run: |
