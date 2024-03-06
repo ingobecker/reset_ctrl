@@ -40,6 +40,14 @@ jobs:
         run: |
           (git log ${{ github.event.before }}..${{ github.event.after }} --pretty="format:" --name-only | sort -u | grep -x -E "${CONTAINER_REBUILD_ON_FILES_CHANGED}" && echo "REBUILD_CONTAINER=1" >> ${GITHUB_ENV}) || true
 
+      - name: Debug CONTAINER_REBUILD_ON_FILES_CHANGED check
+        run: |
+          echo "################################# Changed files detected: " $(git log ${{ github.event.before }}..${{ github.event.after }} --pretty="format:" --name-only | sort -u | grep -x -E "${CONTAINER_REBUILD_ON_FILES_CHANGED}")
+
+      - name: Debug REBUILD_CONTAINER
+        run: |
+          echo "################################# REBUILD_CONTAINER: ${REBUILD_CONTAINER}"
+
       - name: Build container image
         if: ${{ env.REBUILD_CONTAINER != '' }}
         run: podman build -t ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR} .
