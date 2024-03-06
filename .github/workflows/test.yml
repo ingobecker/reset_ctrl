@@ -17,10 +17,18 @@ jobs:
     permissions:
       packages: write
     steps:
-      - name: Check out the repository to the runner
+      - name: PR commits + 1
+        run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> "${GITHUB_ENV}"
+
+      - name: Check out only PR branch and its commits
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.before }}..${{ github.event.after }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: ${{ env.PR_FETCH_DEPTH }}
+
+      - name: Fetch the other branch with enough history for a common merge-base commit
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
 
       - name: Show commits for debugging
         run: git log -4
