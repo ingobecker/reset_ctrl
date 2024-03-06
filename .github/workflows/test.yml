@@ -64,12 +64,6 @@ jobs:
       - name: Debug UID
         run: id
 
-      - name: Debug UID
-        run: podman run --rm --userns keep-id --group-add keep-groups -v .:/usr/src/app:Z ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR} id
-
-      - name: Debug UID
-        run: podman run --rm --userns keep-id --group-add keep-groups -v .:/usr/src/app:Z ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR} ls -lha
-
       - name: Set image name
         run: |
           echo "RUN_IMAGE_NAME=${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR}" >> ${GITHUB_ENV}
@@ -81,6 +75,12 @@ jobs:
       - name: Try to pull latest image if no PR specific image was found
         if: ${{ env.USE_LATEST_IMAGE != '' }}
         run: podman pull --creds=${REGISTRY_USER}:${REGISTRY_PASSWORD} ${RUN_IMAGE_NAME}
+
+      - name: Debug UID
+        run: podman run --rm --userns keep-id --group-add keep-groups -v .:/usr/src/app:Z ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR} id
+
+      - name: Debug UID
+        run: podman run --rm --userns keep-id --group-add keep-groups -v .:/usr/src/app:Z ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR} ls -lha
 
       - name: Show rust versions
         run: podman container runlabel shell ${RUN_IMAGE_NAME} -- rustup show
