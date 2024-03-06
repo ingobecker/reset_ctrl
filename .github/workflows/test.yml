@@ -87,3 +87,12 @@ jobs:
 
       - name: Check formatting
         run: podman container runlabel shell ${RUN_IMAGE_NAME} -- cargo fmt --check
+
+      - name: Building for x86_64-unknown-linux-gnu
+        run: podman container runlabel shell ${RUN_IMAGE_NAME} -- cargo build --release --bin reset_ctrl
+
+      - name: Building for thumbv7m-none-eabi
+        run: podman container runlabel shell ${RUN_IMAGE_NAME} -- cargo build --release --bin stm32-poc --target thumbv7m-none-eabi --features bare-metal
+
+      - name: Running tests
+        run: podman container runlabel shell ${RUN_IMAGE_NAME} -- cargo test
