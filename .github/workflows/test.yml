@@ -61,8 +61,8 @@ jobs:
     needs: container
     if: ${{ always() }}
     steps:
-      - name: Debug UID
-        run: id
+      - name: Check out the repository to the runner
+        uses: actions/checkout@v4
 
       - name: Set image name
         run: |
