@@ -45,4 +45,3 @@ opt-level = "s"
 [profile.release]
 debug = 2
 
-# trigger workflow
