@@ -50,7 +50,7 @@ jobs:
 
       - name: Build container image
         if: ${{ env.REBUILD_CONTAINER != '' }}
-        run: podman build -t ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR} .
+        run: podman build -t ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR} --build-arg="UID=$(id -u)" .
 
       - name: Push container image
         if: ${{ env.REBUILD_CONTAINER != '' }}
@@ -63,6 +63,9 @@ jobs:
     steps:
       - name: Debug UID
         run: id
+
+      - name: Debug UID
+        run: podman ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR}
 
       - name: Set image name
         run: |

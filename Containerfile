@@ -1,11 +1,13 @@
 FROM rust:1.75
 
+ARG UID=1000
+
 RUN apt-get update \
   && apt-get install -y pkg-config \
 			libudev-dev \
   && rm -rf /var/lib/apt/lists/*
 
-RUN useradd --create-home dev
+RUN useradd -u ${UID} --create-home dev
 USER dev
 
 WORKDIR /usr/src/app
