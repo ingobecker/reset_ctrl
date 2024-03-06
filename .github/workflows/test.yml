@@ -50,8 +50,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: container
     if: ${{ always() }}
-    permissions:
-      packages: read
     steps:
       - name: Set image name
         run: |
@@ -59,11 +57,11 @@ jobs:
 
       - name: Try to pull PR specific image if exists
         run: |
-          podman pull ${RUN_IMAGE_NAME} || echo "USE_LATEST_IMAGE=1" >> ${GITHUB_ENV}
+          podman pull --creds=${REGISTRY_USER}:${REGISTRY_PASSWORD} ${RUN_IMAGE_NAME} || echo "USE_LATEST_IMAGE=1" >> ${GITHUB_ENV}
 
       - name: Try to pull latest image if no PR specific image was found
         if: ${{ env.USE_LATEST_IMAGE != '' }}
-        run: podman pull ${RUN_IMAGE_NAME}
+        run: podman pull --creds=${REGISTRY_USER}:${REGISTRY_PASSWORD} ${RUN_IMAGE_NAME}
 
       - name: Check formatting
         run: podman container runlabel shell ${RUN_IMAGE_NAME} -- cargo fmt --check
