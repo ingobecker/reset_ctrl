@@ -16,7 +16,7 @@ COPY src/lib.rs src/lib.rs
 COPY src/bin src/bin
 
 RUN cargo fetch \
-  && cargo install probe-rs --locked --features cli 
+  && cargo install probe-rs --locked --features cli
 
 LABEL SHELL="podman run \
 	-it \
@@ -37,3 +37,4 @@ LABEL SHELLEM="podman run \
         --device /dev/bus/usb \
 	-v .:/usr/src/app:Z \
 	IMAGE"
+#trigger container rebuild1
