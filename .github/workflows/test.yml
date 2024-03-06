@@ -6,6 +6,7 @@ env:
   CONTAINER_REBUILD_ON_FILES_CHANGED: Cargo.lock|Containerfile|rust-toolchain.toml
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
   push:
     branches:
       - main
