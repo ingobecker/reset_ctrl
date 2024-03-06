@@ -1,0 +1,22 @@
+env:
+  REGISTRY_USER: ${{ github.repository_owner }}
+  REGISTRY_PASSWORD: ${{ github.token }}
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository }}
+  IMAGE_NAME: reset-ctrl
+  IMAGE_TAG: ${{ github.event_name == 'pull_request' && 'pr-' || 'latest' }}
+  IMAGE_TAG_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.number }}
+on:
+  pull_request:
+    types: [closed]
+jobs:
+  container-gc:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Delete all PR specific container images
+        uses: actions/delete-package-versions@v4
+        with: 
+          package-name: ${{env.IMAGE_REGISTRY}}/${{env.IMAGE_NAME}}:${{env.IMAGE_TAG}}${{env.IMAGE_TAG_PR}}
+          package-type: 'container'
+          min-versions-to-keep: 0
