@@ -1,4 +1,6 @@
 env:
+  REGISTRY_USER: ${{ github.repository_owner }}
+  REGISTRY_PASSWORD: ${{ github.token }}
   IMAGE_REGISTRY: ghcr.io/${{ github.repository }}
   IMAGE_NAME: reset-ctrl
   IMAGE_TAG: ${{ github.event_name == 'pull_request' && 'pr-' || 'latest' }}
