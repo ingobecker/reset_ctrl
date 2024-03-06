@@ -36,7 +36,10 @@ jobs:
       - name: Check for container rebuild
         if: ${{ github.event.before != '' && github.event.after != '' }}
         run: |
-          git log ${{ github.event.before }}..${{ github.event.after }} --pretty="format:" --name-only | sort -u | grep -x -E "${CONTAINER_REBUILD_ON_FILES_CHANGED}" && echo "REBUILD_CONTAINER=1" >> ${GITHUB_ENV}
+          git log ${{ github.event.before }}..${{ github.event.after }} --pretty="format:" --name-only
+
+      - name: Stop here
+        run: exit 1
 
       - name: Build container image
         if: ${{ env.REBUILD_CONTAINER != '' }}
