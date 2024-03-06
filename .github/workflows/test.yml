@@ -73,5 +73,8 @@ jobs:
         if: ${{ env.USE_LATEST_IMAGE != '' }}
         run: podman pull --creds=${REGISTRY_USER}:${REGISTRY_PASSWORD} ${RUN_IMAGE_NAME}
 
+      - name: Show rust versions
+        run: podman container runlabel shell ${RUN_IMAGE_NAME} -- rustup show
+
       - name: Check formatting
         run: podman container runlabel shell ${RUN_IMAGE_NAME} -- cargo fmt --check
