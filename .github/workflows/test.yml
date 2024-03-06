@@ -61,6 +61,9 @@ jobs:
     needs: container
     if: ${{ always() }}
     steps:
+      - name: Debug UID
+        run: id
+
       - name: Set image name
         run: |
           echo "RUN_IMAGE_NAME=${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR}" >> ${GITHUB_ENV}
