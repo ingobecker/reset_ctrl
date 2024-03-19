@@ -26,8 +26,9 @@ def get_container_vers_for_user(token, user, container)
   packages
 end
 
-token = ENV["GITHUB_TOKEN"]
+token = ENV["CONTAINER_PAT"]
 user = 'ingobecker'
 container = 'reset_ctrl/reset-ctrl'
 
+puts "token: #{token[0..4]}..."
 puts get_container_vers_for_user(token, user, container)

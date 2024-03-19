@@ -53,7 +53,7 @@ jobs:
 
       - name: List all verions for container
         env:
-          GITHUB_TOKEN: ${{ secrets.CONTAINER_PAT }}
+          CONTAINER_PAT: ${{ secrets.CONTAINER_PAT }}
         run: ruby utils/workflow-helper/list_containers.rb
 
   test:
