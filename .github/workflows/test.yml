@@ -47,14 +47,16 @@ jobs:
 
   container-debug:
     runs-on: ubuntu-latest
+    env:
+      DELETE_PR_CONTAINER: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && 'true' }}
     steps:
       - name: Check out the repository to the runner
         uses: actions/checkout@v4
 
-      - name: List all verions for container
+      - name: Run container gc
         env:
           CONTAINER_PAT: ${{ secrets.CONTAINER_PAT }}
-        run: ruby utils/workflow-helper/list_containers.rb
+        run: ruby utils/workflow-helper/container_gc.rb
 
   test:
     runs-on: ubuntu-latest
