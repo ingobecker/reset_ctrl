@@ -13,10 +13,11 @@ def build_headers(token)
 end
 
 def get_container_vers_for_user(token, user, container)
-  package = URI.encode_www_form_component(package)
+  container = URI.encode_www_form_component(container)
   h = build_headers(token)
-  u = USER_PKG_VERS_ENDPOINT % {user: user, package: package}
+  u = USER_PKG_VERS_ENDPOINT % {user: user, package: container}
 
+  puts u
   res = Net::HTTP.get_response(URI(u), h)
   if res.code != '200'
     abort("Can't load versions. Expected 200, got #{res.code}")
@@ -30,5 +31,4 @@ token = ENV["CONTAINER_PAT"]
 user = 'ingobecker'
 container = 'reset_ctrl/reset-ctrl'
 
-puts "token: #{token[0..4]}..."
 puts get_container_vers_for_user(token, user, container)
