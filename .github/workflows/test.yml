@@ -4,7 +4,7 @@ env:
   IMAGE_REGISTRY: ghcr.io/${{ github.repository }}
   IMAGE_NAME: reset-ctrl
   IMAGE_TAG: ${{ github.event_name == 'pull_request' && 'pr-' || 'latest' }}
-  IMAGE_TAG_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.number }}
+  IMAGE_TAG_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || '' }}
   CONTAINER_REBUILD_ON_FILES_CHANGED: Cargo.lock|Containerfile|rust-toolchain.toml
 on:
   pull_request:
