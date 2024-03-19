@@ -47,16 +47,13 @@ jobs:
 
   container-debug:
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: write
     steps:
       - name: Check out the repository to the runner
         uses: actions/checkout@v4
 
       - name: List all verions for container
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CONTAINER_PAT }}
         run: ruby utils/workflow-helper/list_containers.rb
 
   test:
