@@ -53,7 +53,7 @@ end
 token = ENV["CONTAINER_PAT"]
 user = 'ingobecker'
 container = 'reset_ctrl/reset-ctrl'
-pr_container_tag = ENV["IMAGE_TAG_PR"]
+pr_container_tag = ENV["IMAGE_TAG"] + ENV["IMAGE_TAG_PR"]
 delete_pr_container = ENV["DELETE_PR_CONTAINER"]
 
 containers = get_container_vers_for_user(token, user, container)
@@ -73,7 +73,7 @@ untagged_containers.each do |c|
   del_container_vers_for_user(token, user, container, ver)
 end
 
-if delete_pr_container != ''
+if delete_pr_container == 'true'
   puts "PR is closed, trying to delete container with tag '#{pr_container_tag}'"
   pr_container = get_containers_by_tag(containers, pr_container_tag)
 
