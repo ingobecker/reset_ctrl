@@ -45,6 +45,17 @@ jobs:
         if: ${{ env.REBUILD_CONTAINER != '' }}
         run: podman push --creds=${REGISTRY_USER}:${REGISTRY_PASSWORD} ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR}
 
+  container-debug:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Check out the repository to the runner
+        uses: actions/checkout@v4
+
+      - name: List all verions for container
+        run: ruby utils/workflow-helper/list_containers.rb
+
   test:
     runs-on: ubuntu-latest
     needs: container
