@@ -28,7 +28,7 @@ def get_container_vers_for_user(token, user, package)
 end
 
 def del_container_vers_for_user(token, user, package, ver)
-  package = URI.encode_uri_component(package)
+  package = URI.encode_www_form_component(package)
   h = build_headers(token)
   e = USER_PKG_VERS_DEL_ENDPOINT % {user: user, package: package, ver: ver}
   u = URI(e)
