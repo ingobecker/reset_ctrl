@@ -20,17 +20,22 @@ jobs:
       packages: write
     steps:
       - name: PR commits + 1
+        if: ${{ github.event_name == 'pull_request' }}
         run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> "${GITHUB_ENV}"
+
+      - name: Push commits + 1
+        if: ${{ github.event_name == 'push' }}
+        run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.commits }} + 1 ))" >> "${GITHUB_ENV}"
 
       - name: Check out PR branch and its commits
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || 'main' }}
           fetch-depth: ${{ env.PR_FETCH_DEPTH }}
 
       - name: Fetch the other branch with enough history for a common merge-base commit
         run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }}
+          git fetch origin ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.event.base_ref }}
 
       - name: Check for container rebuild
         if: ${{ github.event.before != '' && github.event.after != '' }}
