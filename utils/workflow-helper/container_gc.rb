@@ -14,7 +14,7 @@ def build_headers(token)
 end
 
 def get_container_vers_for_user(token, user, package)
-  package = URI.encode_uri_component(package)
+  package = URI.encode_www_form_component(package)
   h = build_headers(token)
   u = USER_PKG_VERS_ENDPOINT % {user: user, package: package}
 
