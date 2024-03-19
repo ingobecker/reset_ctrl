@@ -54,6 +54,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: List all verions for container
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ruby utils/workflow-helper/list_containers.rb
 
   test:
