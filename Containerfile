@@ -1,16 +1,13 @@
-FROM rust
+FROM rust:1.75
+
+ARG UID=1000
 
 RUN apt-get update \
-  && apt-get install -y stlink-tools \
-                        pkg-config \
-			libusb-1.0-0-dev \
-			libftdi1-dev \
+  && apt-get install -y pkg-config \
 			libudev-dev \
-			libssl-dev \
-			gdb \
   && rm -rf /var/lib/apt/lists/*
 
-RUN useradd --create-home dev
+RUN useradd -u ${UID} --create-home dev
 USER dev
 
 WORKDIR /usr/src/app
@@ -18,9 +15,10 @@ COPY Cargo.* rust-toolchain.toml .
 COPY .cargo/config.toml .cargo/config.toml
 # HACK: only here so `cargo fetch` doesn't complain
 COPY src/lib.rs src/lib.rs
+COPY src/bin src/bin
 
 RUN cargo fetch \
-  && cargo install probe-rs --locked --features cli 
+  && cargo install probe-rs --locked --features cli
 
 LABEL SHELL="podman run \
 	-it \
@@ -41,3 +39,4 @@ LABEL SHELLEM="podman run \
         --device /dev/bus/usb \
 	-v .:/usr/src/app:Z \
 	IMAGE"
+#trigger container rebuild1

@@ -1,0 +1,92 @@
+env:
+  REGISTRY_USER: ${{ github.repository_owner }}
+  REGISTRY_PASSWORD: ${{ github.token }}
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository }}
+  IMAGE_NAME: reset-ctrl
+  IMAGE_TAG: ${{ github.event_name == 'pull_request' && 'pr-' || 'latest' }}
+  IMAGE_TAG_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.number }}
+  CONTAINER_REBUILD_ON_FILES_CHANGED: Cargo.lock|Containerfile|rust-toolchain.toml
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: PR commits + 1
+        run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> "${GITHUB_ENV}"
+
+      - name: Check out PR branch and its commits
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: ${{ env.PR_FETCH_DEPTH }}
+
+      - name: Fetch the other branch with enough history for a common merge-base commit
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+
+      - name: Check for container rebuild
+        if: ${{ github.event.before != '' && github.event.after != '' }}
+        run: |
+          (git log ${{ github.event.before }}..${{ github.event.after }} --pretty="format:" --name-only | sort -u | grep -x -E "${CONTAINER_REBUILD_ON_FILES_CHANGED}" && echo "REBUILD_CONTAINER=1" >> ${GITHUB_ENV}) || true
+
+      - name: Build container image
+        if: ${{ env.REBUILD_CONTAINER != '' }}
+        run: podman build -t ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR} --build-arg="UID=$(id -u)" .
+
+      - name: Push container image
+        if: ${{ env.REBUILD_CONTAINER != '' }}
+        run: podman push --creds=${REGISTRY_USER}:${REGISTRY_PASSWORD} ${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR}
+
+  container-gc:
+    runs-on: ubuntu-latest
+    needs: container
+    if: ${{ always() }}
+    steps:
+      - name: Check out the repository to the runner
+        uses: actions/checkout@v4
+
+      - name: Run container gc
+        env:
+          DELETE_PR_CONTAINER: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && 'true' }}
+          CONTAINER_PAT: ${{ secrets.CONTAINER_PAT }}
+        run: ruby utils/workflow-helper/container_gc.rb
+
+  test:
+    runs-on: ubuntu-latest
+    needs: container
+    if: ${{ always() }}
+    steps:
+      - name: Check out the repository to the runner
+        uses: actions/checkout@v4
+
+      - name: Set image name
+        run: |
+          echo "RUN_IMAGE_NAME=${IMAGE_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}${IMAGE_TAG_PR}" >> ${GITHUB_ENV}
+
+      - name: Try to pull PR specific image if exists
+        run: |
+          podman pull --creds=${REGISTRY_USER}:${REGISTRY_PASSWORD} ${RUN_IMAGE_NAME} || echo "USE_LATEST_IMAGE=1" >> ${GITHUB_ENV}
+
+      - name: Try to pull latest image if no PR specific image was found
+        if: ${{ env.USE_LATEST_IMAGE != '' }}
+        run: podman pull --creds=${REGISTRY_USER}:${REGISTRY_PASSWORD} ${RUN_IMAGE_NAME}
+
+      - name: Check formatting
+        run: podman container runlabel shell ${RUN_IMAGE_NAME} -- cargo fmt --check
+
+      - name: Building for x86_64-unknown-linux-gnu
+        run: podman container runlabel shell ${RUN_IMAGE_NAME} -- cargo build --release --bin reset_ctrl
+
+      - name: Building for thumbv7m-none-eabi
+        run: podman container runlabel shell ${RUN_IMAGE_NAME} -- cargo build --release --bin stm32-poc --target thumbv7m-none-eabi --features bare-metal
+
+      - name: Running tests
+        run: podman container runlabel shell ${RUN_IMAGE_NAME} -- cargo test
