@@ -6,7 +6,9 @@ pub mod input {
 
 pub mod backend {
     mod memory;
+    mod stm32;
     pub use self::memory::InMemoryBackend;
+    pub use self::stm32::Stm32Backend;
 }
 
 use crate::ui::input::Encoder;
