@@ -39,6 +39,10 @@ serde = { version = "1.0", default-features = false, features = ["derive"] }
 name = "stm32-poc"
 required-features = ["bare-metal"]
 
+[[bin]]
+name = "stm32-encoder-poc"
+required-features = ["bare-metal"]
+
 [profile.dev]
 opt-level = "s"
 
