@@ -18,9 +18,9 @@ pub struct MidiRel {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct MidiAbs {
-    channel: u8,
-    control: u8,
-    value: u8,
+    pub channel: u8,
+    pub control: u8,
+    pub value: u8,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

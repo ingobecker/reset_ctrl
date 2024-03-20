@@ -7,7 +7,7 @@ pub mod ui;
 pub mod handler {
 
     mod encoder;
-    pub use self::{encoder::EncoderHandler, encoder::MidiRel};
+    pub use self::{encoder::EncoderHandler, encoder::MidiAbs, encoder::MidiRel};
 }
 
 use device::Device;
