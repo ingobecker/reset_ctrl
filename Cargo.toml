@@ -51,6 +51,10 @@ required-features = ["bare-metal"]
 name = "stm32-encoder-poc"
 required-features = ["bare-metal"]
 
+[[bin]]
+name = "stm32-usb-midi-poc"
+required-features = ["bare-metal"]
+
 [profile.dev]
 opt-level = "s"
 
