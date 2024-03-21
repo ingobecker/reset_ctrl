@@ -5,8 +5,8 @@ use crate::ui::Backend;
 
 pub struct Stm32Backend {
     pingpong: bool,
-    in_a: Input<'static, peripherals::PA0>,
-    in_b: Input<'static, peripherals::PA1>,
+    in_a: Input<'static>,
+    in_b: Input<'static>,
 }
 
 impl Backend for Stm32Backend {
