@@ -91,7 +91,7 @@ the tests can only be tested on `x86_64-unknown-linux-gnu` because testing relie
 
 ## Contributing
 
-In order to do automated releases and changelogs [conventional-commits](https://www.conventionalcommits.org/en/v1.0.0/) are used. /
+In order to do automated releases and changelogs [conventional-commits](https://www.conventionalcommits.org/en/v1.0.0/) are used.
 For new features commits are prefix with `feat: ...` and for bugfixes with: `fix: ...`.
 Breaking changes are introduced with an `!` after the prefix like `feat!: ...` or `fix!: ...`.
 
