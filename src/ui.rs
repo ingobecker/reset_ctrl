@@ -6,8 +6,11 @@ pub mod input {
 
 pub mod backend {
     mod memory;
+    #[cfg(target_os = "none")]
     mod stm32;
     pub use self::memory::InMemoryBackend;
+
+    #[cfg(target_os = "none")]
     pub use self::stm32::Stm32Backend;
 }
 
