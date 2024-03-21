@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
 
-
 use defmt::{panic, *};
 use embassy_executor::Spawner;
 use embassy_futures::join::join;
@@ -113,7 +112,9 @@ impl From<EndpointError> for Disconnected {
     }
 }
 
-async fn echo<'d, T: Instance + 'd>(class: &mut CdcAcmClass<'d, Driver<'d, T>>) -> Result<(), Disconnected> {
+async fn echo<'d, T: Instance + 'd>(
+    class: &mut CdcAcmClass<'d, Driver<'d, T>>,
+) -> Result<(), Disconnected> {
     let mut buf = [0; 64];
     loop {
         let n = class.read_packet(&mut buf).await?;
