@@ -7,7 +7,7 @@ pub struct StdOut {}
 
 #[cfg(target_os = "linux")]
 impl StdOut {
-    pub fn run(&self, data: &OutputData) {
+    pub async fn run(&self, data: &OutputData) {
         match data {
             OutputData::MidiMsgCc(m) => println!(
                 "[Midi CC| Channel: {}, Control: {}, value: {}]",
@@ -24,7 +24,7 @@ impl StdOut {
 
 #[cfg(target_os = "none")]
 impl StdOut {
-    pub fn run(&self, data: &OutputData) {
+    pub async fn run(&self, data: &OutputData) {
         match data {
             OutputData::MidiMsgCc(m) => info!(
                 "[Midi CC| Channel: {}, Control: {}, value: {}]",

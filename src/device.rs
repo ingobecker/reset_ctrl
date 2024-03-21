@@ -55,7 +55,7 @@ impl Device {
         }
     }
 
-    pub fn run_handler(&mut self, outputs: &[OutputType]) {
+    pub async fn run_handler(&mut self, outputs: &[OutputType]) {
         while let Some(i) = self.updated.pop() {
             let input = self
                 .inputs
@@ -67,7 +67,9 @@ impl Device {
 
             for ot in outputs {
                 match ot {
-                    OutputType::StdOut(o) => o.run(&output_data),
+                    OutputType::StdOut(o) => o.run(&output_data).await,
+                    #[cfg(target_os = "none")]
+                    OutputType::UsbOut(o) => o.run(&output_data).await,
                     _ => (),
                 }
             }
