@@ -3,7 +3,7 @@ use embassy_sync::channel::Channel;
 
 use crate::output::OutputData;
 
-pub static CHANNEL: Channel<ThreadModeRawMutex, u8, 4> = Channel::new();
+pub static CHANNEL: Channel<ThreadModeRawMutex, [u8; 3], 1> = Channel::new();
 
 pub struct UsbOut {}
 
@@ -11,9 +11,9 @@ pub struct UsbOut {}
 impl UsbOut {
     pub async fn run(&self, data: &OutputData) {
         match data {
-            OutputData::MidiMsgCc(m) => CHANNEL.send(m.value).await,
-            OutputData::MidiMsgNote(m) => CHANNEL.send(m.velocity).await,
-            _ => CHANNEL.send(0).await,
+            OutputData::MidiMsgCc(m) => CHANNEL.send(m.to_bytes()).await,
+            OutputData::MidiMsgNote(m) => CHANNEL.send(m.to_bytes()).await,
+            _ => CHANNEL.send([0; 3]).await,
         }
     }
 }

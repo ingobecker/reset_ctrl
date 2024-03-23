@@ -9,7 +9,7 @@ use embassy_stm32::time::Hertz;
 use embassy_stm32::usb::{Driver, Instance};
 use embassy_stm32::{bind_interrupts, peripherals, usb, Config};
 use embassy_time::Timer;
-use embassy_usb::class::cdc_acm::{CdcAcmClass, State};
+use embassy_usb::class::midi::MidiClass;
 use embassy_usb::driver::EndpointError;
 use embassy_usb::Builder;
 
@@ -66,17 +66,24 @@ async fn main(_spawner: Spawner) {
     let driver = Driver::new(p.USB, Irqs, p.PA12, p.PA11);
 
     // Create embassy-usb Config
-    let config = embassy_usb::Config::new(0xc0de, 0xcafe);
-    //config.max_packet_size_0 = 64;
+    let mut config = embassy_usb::Config::new(0xc0de, 0xcafe);
+    config.manufacturer = Some("reset-ctrl");
+    config.product = Some("reset-ctrl PoC");
+    config.serial_number = Some("12345678");
+    config.max_power = 100;
+    config.max_packet_size_0 = 64;
+
+    config.device_class = 0xEF;
+    config.device_sub_class = 0x02;
+    config.device_protocol = 0x01;
+    config.composite_with_iads = true;
 
     // Create embassy-usb DeviceBuilder using the driver and config.
     // It needs some buffers for building the descriptors.
     let mut device_descriptor = [0; 256];
     let mut config_descriptor = [0; 256];
     let mut bos_descriptor = [0; 256];
-    let mut control_buf = [0; 7];
-
-    let mut state = State::new();
+    let mut control_buf = [0; 64];
 
     let mut builder = Builder::new(
         driver,
@@ -89,7 +96,7 @@ async fn main(_spawner: Spawner) {
     );
 
     // Create classes on the builder.
-    let mut class = CdcAcmClass::new(&mut builder, &mut state, 64);
+    let mut class = MidiClass::new(&mut builder, 1, 1, 64);
 
     // Build the builder.
     let mut usb = builder.build();
@@ -160,18 +167,16 @@ impl From<EndpointError> for Disconnected {
 }
 
 async fn echo<'d, T: Instance + 'd>(
-    class: &mut CdcAcmClass<'d, Driver<'d, T>>,
+    class: &mut MidiClass<'d, Driver<'d, T>>,
 ) -> Result<(), Disconnected> {
     let mut buf = [0; 64];
     loop {
         if let data = CHANNEL.receive().await {
-            info!("usb CHANNEL received: {}", data);
-            buf[0] = data;
+            buf[0] = data[0] >> 4;
+            buf[1..4].copy_from_slice(&data);
+            //info!("usb CHANNEL received: {:x}", data);
+            //info!("usb class.write_packet {:x}", &buf[..4]);
+            class.write_packet(&buf[..4]).await?;
         }
-
-        info!("usb class.write_packet");
-        let data = &buf[..1];
-        class.write_packet(data).await?;
-        info!("usb class.write_packet success");
     }
 }
