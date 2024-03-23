@@ -97,7 +97,6 @@ async fn main(_spawner: Spawner) {
     // Run the USB device.
     let usb_fut = usb.run();
 
-
     // reset_ctrl setup
     let mut b = Stm32Backend::new(p.PA0, p.PA1);
 
@@ -133,7 +132,6 @@ async fn main(_spawner: Spawner) {
             device.run_handler(&outputs).await;
         }
     };
-
 
     // Do stuff with the class!
     let echo_fut = async {
