@@ -3,7 +3,7 @@
 
 use defmt::{panic, *};
 use embassy_executor::Spawner;
-use embassy_futures::join::join;
+use embassy_futures::join::join3;
 use embassy_stm32::gpio::{Level, Output, Speed};
 use embassy_stm32::time::Hertz;
 use embassy_stm32::usb::{Driver, Instance};
@@ -12,6 +12,17 @@ use embassy_time::Timer;
 use embassy_usb::class::cdc_acm::{CdcAcmClass, State};
 use embassy_usb::driver::EndpointError;
 use embassy_usb::Builder;
+
+use heapless::Vec;
+
+use reset_ctrl::device::Device;
+use reset_ctrl::handler::{EncoderHandler, MidiAbs};
+use reset_ctrl::output::{MidiMsgCc, OutputData, OutputType, StdOut, UsbOut, CHANNEL};
+use reset_ctrl::ui::backend::Stm32Backend;
+use reset_ctrl::ui::input::{Encoder, EncoderDirection};
+use reset_ctrl::ui::Backend;
+use reset_ctrl::ui::{Input, InputType};
+
 use {defmt_rtt as _, panic_probe as _};
 
 bind_interrupts!(struct Irqs {
@@ -86,6 +97,44 @@ async fn main(_spawner: Spawner) {
     // Run the USB device.
     let usb_fut = usb.run();
 
+
+    // reset_ctrl setup
+    let mut b = Stm32Backend::new(p.PA0, p.PA1);
+
+    let mut encoder = Encoder::new();
+    let mut handler = EncoderHandler::MidiAbs(MidiAbs {
+        channel: 0,
+        control: 4,
+        value: 0,
+    });
+    encoder.attach_handler(handler);
+
+    let mut input = InputType::Encoder(encoder);
+    let mut device = Device::new();
+
+    let mut outputs: Vec<OutputType, 2> = Vec::new();
+    outputs.push(OutputType::StdOut(StdOut {}));
+    outputs.push(OutputType::UsbOut(UsbOut {}));
+
+    // setup
+    device.add_input(input);
+    device.init_inputs(&mut b);
+
+    // operation
+    device.update(&mut b);
+    device.run_handler(&outputs);
+
+    info!("Starting update loop");
+    let reset_ctrl_fut = async {
+        loop {
+            Timer::after_millis(2).await;
+
+            device.update(&mut b);
+            device.run_handler(&outputs).await;
+        }
+    };
+
+
     // Do stuff with the class!
     let echo_fut = async {
         loop {
@@ -98,7 +147,7 @@ async fn main(_spawner: Spawner) {
 
     // Run everything concurrently.
     // If we had made everything `'static` above instead, we could do this using separate tasks instead.
-    join(usb_fut, echo_fut).await;
+    join3(usb_fut, echo_fut, reset_ctrl_fut).await;
 }
 
 struct Disconnected {}
@@ -117,9 +166,14 @@ async fn echo<'d, T: Instance + 'd>(
 ) -> Result<(), Disconnected> {
     let mut buf = [0; 64];
     loop {
-        let n = class.read_packet(&mut buf).await?;
-        let data = &buf[..n];
-        info!("data: {:x}", data);
+        if let data = CHANNEL.receive().await {
+            info!("usb CHANNEL received: {}", data);
+            buf[0] = data;
+        }
+
+        info!("usb class.write_packet");
+        let data = &buf[..1];
         class.write_packet(data).await?;
+        info!("usb class.write_packet success");
     }
 }
