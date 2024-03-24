@@ -105,7 +105,7 @@ async fn main(_spawner: Spawner) {
     let usb_fut = usb.run();
 
     // reset_ctrl setup
-    let mut b = Stm32Backend::new(p.PA0, p.PA1);
+    let mut b = Stm32Backend::new(p.PA0, p.PA1, p.PA2, p.PA3);
 
     let mut encoder = Encoder::new();
     let mut handler = EncoderHandler::MidiAbs(MidiAbs {
@@ -133,7 +133,7 @@ async fn main(_spawner: Spawner) {
     info!("Starting update loop");
     let reset_ctrl_fut = async {
         loop {
-            Timer::after_millis(2).await;
+            Timer::after_millis(1).await;
 
             device.update(&mut b);
             device.run_handler(&outputs).await;

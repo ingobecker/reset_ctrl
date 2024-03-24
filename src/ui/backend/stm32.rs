@@ -1,12 +1,14 @@
-use embassy_stm32::gpio::{Input, Level, Pull, Speed};
+use embassy_stm32::gpio::{Flex, Input, Level, Output, Pull, Speed};
 use embassy_stm32::peripherals;
 
 use crate::ui::Backend;
 
 pub struct Stm32Backend {
-    pingpong: bool,
-    in_a: Input<'static>,
-    in_b: Input<'static>,
+    addr: u8,
+    out_a: Output<'static>,
+    out_b: Output<'static>,
+    out_c: Output<'static>,
+    flex_com: Flex<'static>,
 }
 
 impl Backend for Stm32Backend {
@@ -15,22 +17,56 @@ impl Backend for Stm32Backend {
     }
 
     fn read_input(&mut self) -> bool {
-        if self.pingpong {
-            self.pingpong = false;
-            return self.in_a.is_high();
-        } else {
-            self.pingpong = true;
-            return self.in_b.is_high();
-        }
+        self.flex_com.set_as_input(Pull::Up);
+        let level = self.flex_com.is_high();
+        self.next();
+        level
     }
 }
 
 impl Stm32Backend {
-    pub fn new(pin_a: peripherals::PA0, pin_b: peripherals::PA1) -> Self {
+    pub fn new(
+        out_a: peripherals::PA0,
+        out_b: peripherals::PA1,
+        out_c: peripherals::PA2,
+        flex_com: peripherals::PA3,
+    ) -> Self {
         Self {
-            pingpong: true,
-            in_a: Input::new(pin_a, Pull::Up),
-            in_b: Input::new(pin_b, Pull::Up),
+            addr: 0,
+            out_a: Output::new(out_a, Level::Low, Speed::Low),
+            out_b: Output::new(out_b, Level::Low, Speed::Low),
+            out_c: Output::new(out_c, Level::Low, Speed::Low),
+            flex_com: Flex::new(flex_com),
         }
+    }
+
+    fn next(&mut self) {
+        self.addr = (self.addr + 1) & 1; // Limit to two inputs, use & 0b111; later
+        self.set_addr();
+    }
+
+    fn set_addr(&mut self) {
+        let mut addr_tmp = self.addr;
+
+        if (addr_tmp & 1) == 1 {
+            self.out_a.set_high();
+        } else {
+            self.out_a.set_low();
+        }
+        addr_tmp >>= 1;
+
+        if (addr_tmp & 1) == 1 {
+            self.out_b.set_high();
+        } else {
+            self.out_b.set_low();
+        }
+        addr_tmp >>= 1;
+
+        if (addr_tmp & 1) == 1 {
+            self.out_c.set_high();
+        } else {
+            self.out_c.set_low();
+        }
+        addr_tmp >>= 1;
     }
 }
