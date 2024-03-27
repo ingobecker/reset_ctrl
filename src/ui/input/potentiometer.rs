@@ -54,14 +54,17 @@ mod tests {
     use super::*;
     use crate::ui::backend::InMemoryBackend;
 
-    #[test]
-    fn potentiometer_low_definition() {
+    #[cfg(test)]
+    async fn potentiometer_low_definition() {
         let data: [u16; 1] = [1 << 12];
         let mut b = InMemoryBackend::new();
         b.set_adc_buffer(&data);
 
-        let mut pot = Potentiometer { value: 0 };
-        assert!(pot.update(&mut b));
+        let mut pot = Potentiometer {
+            value: 0,
+            handler: PotentiometerHandler::Dummy,
+        };
+        assert!(pot.update(&mut b).await);
         assert_eq!(pot.value(), 1 << 7);
     }
 }

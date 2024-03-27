@@ -8,8 +8,8 @@ use reset_ctrl::ui::{Input, InputType};
 use heapless::Vec;
 use serde::{Deserialize, Serialize};
 
-#[test]
-fn cw_to_midi() {
+#[async_std::test]
+async fn cw_to_midi() {
     let data_cw = [false, false, true, false, true, true];
     let mut b = InMemoryBackend::new();
     b.set_input_buffer(&data_cw);
@@ -21,7 +21,7 @@ fn cw_to_midi() {
         control: 4,
     });
     encoder.attach_handler(handler);
-    assert!(encoder.update(&mut b));
+    assert!(encoder.update(&mut b).await);
     assert_eq!(encoder.value(), EncoderDirection::CW);
 
     let expected_output = MidiMsgCc {

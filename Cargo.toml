@@ -13,6 +13,7 @@ bare-metal = []
 heapless = { version = "0.8.0", features = ["serde"] }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 serde_yaml = { version = "0.9" }
+async-std = { version = "1.7.0", features = ["attributes"] }
 
 [target.'cfg(target_os = "none")'.dependencies]
 embassy-stm32 = { version = "0.1.0", features = [ "defmt", "stm32f103c8", "unstable-pac", "memory-x", "time-driver-any" ]  }

@@ -80,8 +80,8 @@ mod tests {
     //use crate::ui::backend::Backend;
     use crate::ui::backend::InMemoryBackend;
 
-    #[test]
-    fn encoder_turn_cw() {
+    #[async_std::test]
+    async fn encoder_turn_cw() -> std::io::Result<()> {
         let data_cw = [
             false, false,
             /*
@@ -117,13 +117,14 @@ mod tests {
         encoder.init(&mut b);
 
         for _ in 0..5 {
-            assert!(encoder.update(&mut b));
+            assert!(encoder.update(&mut b).await);
             assert_eq!(encoder.value(), EncoderDirection::CW);
         }
+        Ok(())
     }
 
-    #[test]
-    fn encoder_turn_ccw() {
+    #[async_std::test]
+    async fn encoder_turn_ccw() {
         let data_cw = [
             false, false,
             /*
@@ -159,13 +160,13 @@ mod tests {
         encoder.init(&mut b);
 
         for _ in 0..4 {
-            assert!(encoder.update(&mut b));
+            assert!(encoder.update(&mut b).await);
             assert_eq!(encoder.value(), EncoderDirection::CCW);
         }
     }
 
-    #[test]
-    fn encoder_turn_back_n_forth() {
+    #[async_std::test]
+    async fn encoder_turn_back_n_forth() {
         let data_cw = [
             false, false,
             /*
@@ -194,15 +195,15 @@ mod tests {
         let mut encoder = Encoder::new();
         encoder.init(&mut b);
 
-        assert!(encoder.update(&mut b));
+        assert!(encoder.update(&mut b).await);
         assert_eq!(encoder.value(), EncoderDirection::CCW);
 
-        assert!(encoder.update(&mut b));
+        assert!(encoder.update(&mut b).await);
         assert_eq!(encoder.value(), EncoderDirection::CW);
     }
 
-    #[test]
-    fn encoder_no_turn() {
+    #[async_std::test]
+    async fn encoder_no_turn() {
         let data_cw = [
             /*
              * A: 0110
@@ -218,9 +219,9 @@ mod tests {
         let mut encoder = Encoder::new();
         encoder.init(&mut b);
 
-        assert!(encoder.update(&mut b));
+        assert!(encoder.update(&mut b).await);
         assert_eq!(encoder.value(), EncoderDirection::CW);
-        assert!(!encoder.update(&mut b), "Returned update");
+        assert!(!encoder.update(&mut b).await, "Returned update");
         assert_eq!(encoder.value(), EncoderDirection::CW);
     }
 }

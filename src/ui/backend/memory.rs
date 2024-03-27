@@ -77,8 +77,8 @@ impl InMemoryBackend {
 mod tests {
     use super::*;
 
-    #[test]
-    fn read_adc_wraps_around() {
+    #[async_std::test]
+    async fn read_adc_wraps_around() {
         let mut b = InMemoryBackend::new();
         let data: [u16; 4] = [42, 23, 5, 1];
 
@@ -88,7 +88,7 @@ mod tests {
         let mut actual: [u16; 6] = [0; 6];
 
         for v in &mut actual {
-            *v = b.read_adc();
+            *v = b.read_adc().await;
         }
 
         assert_eq!(expected, actual);
