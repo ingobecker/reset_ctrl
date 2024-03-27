@@ -41,8 +41,8 @@ impl Encoder {
         }
     }
 
-    pub fn init(&mut self, backend: &mut impl Backend) {
-        self.read(backend);
+    pub async fn init(&mut self, backend: &mut impl Backend) {
+        self.pattern = self.read(backend);
     }
 
     pub fn attach_handler(&mut self, handler: EncoderHandler) {
@@ -114,7 +114,7 @@ mod tests {
         b.set_input_buffer(&data_cw);
 
         let mut encoder = Encoder::new();
-        encoder.init(&mut b);
+        encoder.init(&mut b).await;
 
         for _ in 0..5 {
             assert!(encoder.update(&mut b).await);
@@ -157,7 +157,7 @@ mod tests {
         b.set_input_buffer(&data_cw);
 
         let mut encoder = Encoder::new();
-        encoder.init(&mut b);
+        encoder.init(&mut b).await;
 
         for _ in 0..4 {
             assert!(encoder.update(&mut b).await);
@@ -193,7 +193,7 @@ mod tests {
         b.set_input_buffer(&data_cw);
 
         let mut encoder = Encoder::new();
-        encoder.init(&mut b);
+        encoder.init(&mut b).await;
 
         assert!(encoder.update(&mut b).await);
         assert_eq!(encoder.value(), EncoderDirection::CCW);
@@ -217,7 +217,7 @@ mod tests {
         b.set_input_buffer(&data_cw);
 
         let mut encoder = Encoder::new();
-        encoder.init(&mut b);
+        encoder.init(&mut b).await;
 
         assert!(encoder.update(&mut b).await);
         assert_eq!(encoder.value(), EncoderDirection::CW);

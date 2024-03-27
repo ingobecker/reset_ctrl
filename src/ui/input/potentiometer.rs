@@ -32,6 +32,10 @@ impl Potentiometer {
         }
     }
 
+    pub async fn init(&mut self, backend: &mut impl Backend) {
+        self.update(backend).await;
+    }
+
     fn value(&self) -> u8 {
         self.value
     }

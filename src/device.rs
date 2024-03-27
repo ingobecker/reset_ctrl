@@ -33,11 +33,11 @@ impl Device {
         self.inputs.push(input)
     }
 
-    pub fn init_inputs(&mut self, backend: &mut impl Backend) {
+    pub async fn init_inputs(&mut self, backend: &mut impl Backend) {
         for (idx, input) in self.inputs.iter_mut().enumerate() {
             match input {
-                InputType::Encoder(i) => i.init(backend),
-                //InputType::Potentiometer(i) => i.update(backend),
+                InputType::Encoder(i) => i.init(backend).await,
+                InputType::Potentiometer(i) => i.init(backend).await,
                 _ => (),
             };
         }

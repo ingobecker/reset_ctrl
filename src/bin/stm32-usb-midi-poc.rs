@@ -142,13 +142,10 @@ async fn main(_spawner: Spawner) {
     device.init_inputs(&mut b);
 
     // operation
-    device.update(&mut b);
-    device.run_handler(&outputs);
-
     info!("Starting update loop");
     let reset_ctrl_fut = async {
         loop {
-            Timer::after_millis(1).await;
+            Timer::after_micros(500).await;
 
             device.update(&mut b).await;
             device.run_handler(&outputs).await;

@@ -23,7 +23,10 @@ pub struct Stm32Backend {
 
 impl Backend for Stm32Backend {
     async fn read_adc(&mut self) -> u16 {
-        self.adc.read(&mut self.adc_pin).await
+        self.flex_com.set_as_input(Pull::None);
+        let v = self.adc.read(&mut self.adc_pin).await;
+        self.next();
+        v
     }
 
     fn read_input(&mut self) -> bool {
@@ -55,14 +58,11 @@ impl Stm32Backend {
     }
 
     fn next(&mut self) {
-        /*
         if self.addr == 2 {
             self.addr = 0;
         } else {
             self.addr = self.addr + 1; // Limit to two inputs, use & 0b111; later
         }
-        */
-        self.addr = (self.addr + 1) & 1; // Limit to two inputs, use & 0b111; later
         self.set_addr();
     }
 

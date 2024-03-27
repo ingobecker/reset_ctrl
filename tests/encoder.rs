@@ -15,7 +15,7 @@ async fn cw_to_midi() {
     b.set_input_buffer(&data_cw);
 
     let mut encoder = Encoder::new();
-    encoder.init(&mut b);
+    encoder.init(&mut b).await;
     let mut handler = EncoderHandler::MidiRel(MidiRel {
         channel: 0,
         control: 4,
