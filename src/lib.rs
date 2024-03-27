@@ -7,11 +7,13 @@ pub mod ui;
 pub mod handler {
 
     mod encoder;
+    mod potentiometer;
     pub use self::{encoder::EncoderHandler, encoder::MidiAbs, encoder::MidiRel};
+    pub use self::{potentiometer::MidiAbs as PotMidiAbs, potentiometer::PotentiometerHandler};
 }
 
 use device::Device;
-use handler::{EncoderHandler, MidiRel};
+use handler::{EncoderHandler, MidiRel, PotentiometerHandler};
 use output::{MidiMsgCc, OutputData, OutputType, StdOut};
 use ui::backend::InMemoryBackend;
 use ui::input::{Encoder, EncoderDirection};

@@ -13,7 +13,7 @@ pub struct Encoder {
 }
 
 impl Input for Encoder {
-    fn update(&mut self, backend: &mut impl Backend) -> bool {
+    async fn update(&mut self, backend: &mut impl Backend) -> bool {
         let pattern = self.read(backend);
         if (self.pattern & 0b11u8) == pattern {
             return false;

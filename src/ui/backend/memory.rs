@@ -11,7 +11,7 @@ pub struct InMemoryBackend {
 }
 
 impl Backend for InMemoryBackend {
-    fn read_adc(&mut self) -> u16 {
+    async fn read_adc(&mut self) -> u16 {
         let result = self.adc_buffer.get(self.adc_buffer_pos);
         self.adc_buffer_pos += 1;
 

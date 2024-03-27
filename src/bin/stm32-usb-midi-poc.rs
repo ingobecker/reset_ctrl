@@ -16,10 +16,10 @@ use embassy_usb::Builder;
 use heapless::Vec;
 
 use reset_ctrl::device::Device;
-use reset_ctrl::handler::{EncoderHandler, MidiAbs};
+use reset_ctrl::handler::{EncoderHandler, MidiAbs, PotMidiAbs, PotentiometerHandler};
 use reset_ctrl::output::{MidiMsgCc, OutputData, OutputType, StdOut, UsbOut, CHANNEL};
 use reset_ctrl::ui::backend::Stm32Backend;
-use reset_ctrl::ui::input::{Encoder, EncoderDirection};
+use reset_ctrl::ui::input::{Encoder, EncoderDirection, Potentiometer};
 use reset_ctrl::ui::Backend;
 use reset_ctrl::ui::{Input, InputType};
 
@@ -104,9 +104,14 @@ async fn main(_spawner: Spawner) {
     // Run the USB device.
     let usb_fut = usb.run();
 
-    // reset_ctrl setup
-    let mut b = Stm32Backend::new(p.PA0, p.PA1, p.PA2, p.PA3);
+    info!("USB setup completed!");
+    info!("Setting up Stm32Backend...");
 
+    // reset_ctrl setup
+    let mut b = Stm32Backend::new(p.PA0, p.PA1, p.PA2, p.PA3, p.ADC1, p.PA4);
+    info!("Stm32Backend setup completed!");
+
+    // encoder
     let mut encoder = Encoder::new();
     let mut handler = EncoderHandler::MidiAbs(MidiAbs {
         channel: 0,
@@ -114,16 +119,26 @@ async fn main(_spawner: Spawner) {
         value: 0,
     });
     encoder.attach_handler(handler);
-
     let mut input = InputType::Encoder(encoder);
-    let mut device = Device::new();
 
+    // potentiometer
+    let mut pot = Potentiometer::new();
+    let mut pot_handler = PotentiometerHandler::MidiAbs(PotMidiAbs {
+        channel: 5,
+        control: 42,
+        value: 23,
+    });
+    pot.attach_handler(pot_handler);
+    let mut pot_input = InputType::Potentiometer(pot);
+
+    let mut device = Device::new();
     let mut outputs: Vec<OutputType, 2> = Vec::new();
     outputs.push(OutputType::StdOut(StdOut {}));
     outputs.push(OutputType::UsbOut(UsbOut {}));
 
     // setup
     device.add_input(input);
+    device.add_input(pot_input);
     device.init_inputs(&mut b);
 
     // operation
@@ -135,7 +150,7 @@ async fn main(_spawner: Spawner) {
         loop {
             Timer::after_millis(1).await;
 
-            device.update(&mut b);
+            device.update(&mut b).await;
             device.run_handler(&outputs).await;
         }
     };

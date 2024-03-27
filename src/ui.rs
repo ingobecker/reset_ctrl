@@ -15,6 +15,7 @@ pub mod backend {
 }
 
 use crate::ui::input::Encoder;
+use crate::ui::input::Potentiometer;
 
 use serde::{Deserialize, Serialize};
 
@@ -23,16 +24,16 @@ pub trait Input {
      * Updates its state using the given HAL backend.
      * If its state changed, returns true otherwise false.
      */
-    fn update(&mut self, backend: &mut impl Backend) -> bool;
+    async fn update(&mut self, backend: &mut impl Backend) -> bool;
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum InputType {
     Encoder(Encoder),
-    //Potentiometer(Potentiometer),
+    Potentiometer(Potentiometer),
 }
 
 pub trait Backend {
-    fn read_adc(&mut self) -> u16;
+    async fn read_adc(&mut self) -> u16;
     fn read_input(&mut self) -> bool;
 }

@@ -1,13 +1,21 @@
+use crate::handler::PotentiometerHandler;
+use crate::output::OutputData;
 use crate::ui::Backend;
 use crate::ui::Input;
 
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Potentiometer {
+    #[serde(skip)]
     value: u8,
+    pub handler: PotentiometerHandler,
 }
 
 impl Input for Potentiometer {
-    fn update(&mut self, backend: &mut impl Backend) -> bool {
-        let data = (backend.read_adc() >> 5) as u8;
+    async fn update(&mut self, backend: &mut impl Backend) -> bool {
+        let data = backend.read_adc().await;
+        let data = (data >> 5) as u8;
         if self.value != data {
             self.value = data;
             return true;
@@ -17,8 +25,27 @@ impl Input for Potentiometer {
 }
 
 impl Potentiometer {
+    pub fn new() -> Self {
+        Self {
+            value: 0,
+            handler: PotentiometerHandler::Dummy,
+        }
+    }
+
     fn value(&self) -> u8 {
         self.value
+    }
+
+    pub fn attach_handler(&mut self, handler: PotentiometerHandler) {
+        self.handler = handler;
+    }
+
+    pub fn run_handler(&mut self) -> OutputData {
+        let v = self.value();
+        match &mut self.handler {
+            PotentiometerHandler::MidiAbs(h) => h.run(v),
+            PotentiometerHandler::Dummy => OutputData::Dummy,
+        }
     }
 }
 

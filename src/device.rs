@@ -37,16 +37,17 @@ impl Device {
         for (idx, input) in self.inputs.iter_mut().enumerate() {
             match input {
                 InputType::Encoder(i) => i.init(backend),
-                //InputType::Potentiometer(i) => i.update(&mut self.backend),
+                //InputType::Potentiometer(i) => i.update(backend),
+                _ => (),
             };
         }
     }
 
-    pub fn update(&mut self, backend: &mut impl Backend) {
+    pub async fn update(&mut self, backend: &mut impl Backend) {
         for (idx, input) in self.inputs.iter_mut().enumerate() {
             let was_updated = match input {
-                InputType::Encoder(i) => i.update(backend),
-                //InputType::Potentiometer(i) => i.update(&mut self.backend),
+                InputType::Encoder(i) => i.update(backend).await,
+                InputType::Potentiometer(i) => i.update(backend).await,
             };
 
             if was_updated {
@@ -63,6 +64,7 @@ impl Device {
                 .expect("Can't dispatch non existing input");
             let output_data = match input {
                 InputType::Encoder(i) => i.run_handler(),
+                InputType::Potentiometer(i) => i.run_handler(),
             };
 
             for ot in outputs {
