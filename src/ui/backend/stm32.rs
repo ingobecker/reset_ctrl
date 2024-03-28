@@ -12,6 +12,7 @@ bind_interrupts!(struct Irqs {
 });
 
 pub struct Stm32Backend {
+    inputs: u8,
     addr: u8,
     out_a: Output<'static>,
     out_b: Output<'static>,
@@ -39,6 +40,7 @@ impl Backend for Stm32Backend {
 
 impl Stm32Backend {
     pub fn new(
+        inputs: u8,
         out_a: peripherals::PA0,
         out_b: peripherals::PA1,
         out_c: peripherals::PA2,
@@ -47,6 +49,7 @@ impl Stm32Backend {
         adc_pin: peripherals::PA4,
     ) -> Self {
         Self {
+            inputs: inputs,
             addr: 0,
             out_a: Output::new(out_a, Level::Low, Speed::Low),
             out_b: Output::new(out_b, Level::Low, Speed::Low),
@@ -58,10 +61,10 @@ impl Stm32Backend {
     }
 
     fn next(&mut self) {
-        if self.addr == 2 {
+        if self.addr == self.inputs {
             self.addr = 0;
         } else {
-            self.addr = self.addr + 1; // Limit to two inputs, use & 0b111; later
+            self.addr = self.addr + 1;
         }
         self.set_addr();
     }

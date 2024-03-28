@@ -105,12 +105,8 @@ async fn main(_spawner: Spawner) {
     let usb_fut = usb.run();
 
     info!("USB setup completed!");
-    info!("Setting up Stm32Backend...");
 
-    // reset_ctrl setup
-    let mut b = Stm32Backend::new(p.PA0, p.PA1, p.PA2, p.PA3, p.ADC1, p.PA4);
-    info!("Stm32Backend setup completed!");
-
+    // setup device
     // encoder
     let mut encoder = Encoder::new();
     let mut handler = EncoderHandler::MidiAbs(MidiAbs {
@@ -139,6 +135,13 @@ async fn main(_spawner: Spawner) {
     // setup
     device.add_input(input);
     device.add_input(pot_input);
+
+    info!("Setting up Stm32Backend...");
+    // reset_ctrl setup
+    let inputs = device.inputs();
+    let mut b = Stm32Backend::new(inputs, p.PA0, p.PA1, p.PA2, p.PA3, p.ADC1, p.PA4);
+    info!("Stm32Backend setup completed!");
+
     device.init_inputs(&mut b);
 
     // operation
