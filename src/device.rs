@@ -78,4 +78,8 @@ impl Device {
         }
         self.updated.clear();
     }
+
+    pub fn inputs(&self) -> u8 {
+        self.inputs.len() as u8
+    }
 }
