@@ -25,7 +25,6 @@ async fn main(_spawner: Spawner) {
     let config = Config::default();
     let p = embassy_stm32::init(config);
 
-    let mut b = Stm32Backend::new(p.PA0, p.PA1, p.PA2, p.PA3, p.ADC1, p.PA4);
 
     let mut encoder = Encoder::new();
     let mut handler = EncoderHandler::MidiAbs(MidiAbs {
@@ -37,6 +36,9 @@ async fn main(_spawner: Spawner) {
 
     let mut input = InputType::Encoder(encoder);
     let mut device = Device::new();
+
+    let inputs = device.inputs();
+    let mut b = Stm32Backend::new(inputs, p.PA0, p.PA1, p.PA2, p.PA3, p.ADC1, p.PA4);
 
     let mut outputs: Vec<OutputType, 2> = Vec::new();
     outputs.push(OutputType::StdOut(StdOut {}));
