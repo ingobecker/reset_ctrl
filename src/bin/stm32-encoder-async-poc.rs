@@ -25,7 +25,6 @@ async fn main(_spawner: Spawner) {
     let config = Config::default();
     let p = embassy_stm32::init(config);
 
-
     let mut encoder = Encoder::new();
     let mut handler = EncoderHandler::MidiAbs(MidiAbs {
         channel: 0,
