@@ -5,12 +5,16 @@ ARG UID=1000
 RUN apt-get update \
   && apt-get install -y pkg-config \
 			libudev-dev \
+			pipx \
   && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -u ${UID} --create-home dev
 USER dev
 
 WORKDIR /usr/src/app
+RUN pipx install pre-commit
+ENV PATH="${PATH}:/home/dev/.local/bin"
+
 COPY Cargo.* rust-toolchain.toml .
 COPY .cargo/config.toml .cargo/config.toml
 # HACK: only here so `cargo fetch` doesn't complain

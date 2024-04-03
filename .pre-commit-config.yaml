@@ -1,0 +1,51 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.5.0
+  hooks:
+  - id: mixed-line-ending
+  - id: end-of-file-fixer
+  - id: trailing-whitespace
+    args:
+      - --markdown-linebreak-ext=md
+  - id: no-commit-to-branch
+    args:
+      - --branch
+      - main
+  - id: check-merge-conflict
+
+- repo: local
+  hooks:
+  - id: fmt-check
+    name: cargo fmt (check-only)
+    description: format files with "cargo fmt"
+    types:
+      - rust
+    language: system
+    entry: cargo fmt --
+
+  - id: build-stm32
+    name: cargo build stm32
+    description: build all stm32 binaries
+    types:
+      - rust
+    language: system
+    entry: cargo build --target thumbv7m-none-eabi --release --features bare-metal --bin stm32-*
+    pass_filenames: false
+
+  - id: build-x86
+    name: cargo build x86
+    description: build all x86 binaries
+    types:
+      - rust
+    language: system
+    entry: cargo build --release --bin reset_ctrl
+    pass_filenames: false
+
+  - id: tests
+    name: cargo test
+    description: build all x86 binaries
+    types:
+      - rust
+    language: system
+    entry: cargo test
+    pass_filenames: false

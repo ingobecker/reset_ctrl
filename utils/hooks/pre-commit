@@ -1,0 +1,2 @@
+#!/bin/bash
+podman container runlabel shell reset-ctrl-rust pre-commit run

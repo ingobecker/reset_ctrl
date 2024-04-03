@@ -16,7 +16,7 @@ process.
 ## Hardware
 
 In order to reduce the in- and outputs needed on the used microcontroller
-the hardware is based on daisy-chained analog in- and output multiplexers. 
+the hardware is based on daisy-chained analog in- and output multiplexers.
 
 Currently the PCB is designed to support the following in- and outputs:
 
@@ -95,6 +95,8 @@ In order to do automated releases and changelogs [conventional-commits](https://
 For new features commits are prefix with `feat: ...` and for bugfixes with: `fix: ...`.
 Breaking changes are introduced with an `!` after the prefix like `feat!: ...` or `fix!: ...`.
 
+To make sure commits pass the GitHub CI workflow [pre-commit](https://pre-commit.com) can be used. It's contained in the container image. It can be run manually using the command `pre-commit run`. To use it as an actual git pre-commit hook, copy the hook file [utils/hooks/pre-commit](utils/hooks/pre-commit) to `.git/hooks/pre-commit`. Make sure the file is executable by your current user. The hook is intended to be used by a git commit made from your host system. It will run `pre-commit` in a new container. This way you don't have to install any dependencies needed by `pre-commit`.
+
 ## Roadmap
 
 As this projects purpose is to learn rust, don't expect any of the features
@@ -103,4 +105,3 @@ outlined below to be implemented in order or a timely manner.
 - Support for linux, wasm and bare metal microcontrollers
 - Support for encoder, potentiometer, fader and RGB LEDs
 - CLI for configuration
-
