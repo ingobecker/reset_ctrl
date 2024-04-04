@@ -20,9 +20,6 @@ use {defmt_rtt as _, panic_probe as _};
 
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) -> ! {
-    let config = Config::default();
-    let p = embassy_stm32::init(config);
-
     let mut encoder = Encoder::new();
     let mut handler = EncoderHandler::MidiAbs(MidiAbs {
         channel: 0,
@@ -41,7 +38,7 @@ async fn main(_spawner: Spawner) -> ! {
     device.add_input(input);
 
     let inputs = device.inputs();
-    let mut b = Stm32Backend::new(inputs, p.PA0, p.PA1, p.PA2, p.PA3, p.ADC1, p.PA4);
+    let mut b = Stm32Backend::new(inputs).await;
     device.init_inputs(&mut b);
 
     // operation

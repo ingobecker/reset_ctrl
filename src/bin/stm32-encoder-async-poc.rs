@@ -5,7 +5,6 @@ use futures::future::join;
 
 use defmt::info;
 use embassy_executor::Spawner;
-use embassy_stm32::gpio::{Input as GpioInput, Level, Pull, Speed};
 use embassy_stm32::Config;
 use embassy_time::{with_timeout, Duration, Timer};
 use heapless::Vec;
@@ -22,9 +21,6 @@ use {defmt_rtt as _, panic_probe as _};
 
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
-    let config = Config::default();
-    let p = embassy_stm32::init(config);
-
     let mut encoder = Encoder::new();
     let mut handler = EncoderHandler::MidiAbs(MidiAbs {
         channel: 0,
@@ -37,7 +33,7 @@ async fn main(_spawner: Spawner) {
     let mut device = Device::new();
 
     let inputs = device.inputs();
-    let mut b = Stm32Backend::new(inputs, p.PA0, p.PA1, p.PA2, p.PA3, p.ADC1, p.PA4);
+    let mut b = Stm32Backend::new(inputs).await;
 
     let mut outputs: Vec<OutputType, 2> = Vec::new();
     outputs.push(OutputType::StdOut(StdOut {}));

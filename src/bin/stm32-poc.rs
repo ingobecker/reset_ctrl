@@ -10,7 +10,7 @@ use {defmt_rtt as _, panic_probe as _};
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) -> ! {
     let config = Config::default();
-    let _p = embassy_stm32::init(config);
+    let _pp = embassy_stm32::init(config);
 
     reset_ctrl::run();
     loop {
