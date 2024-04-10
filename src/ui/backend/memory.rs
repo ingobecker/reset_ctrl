@@ -42,6 +42,8 @@ impl Backend for InMemoryBackend {
             }
         }
     }
+
+    fn rewind(&mut self) {}
 }
 
 impl InMemoryBackend {

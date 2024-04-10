@@ -41,6 +41,7 @@ impl Device {
                 _ => (),
             };
         }
+        backend.rewind();
     }
 
     pub async fn update(&mut self, backend: &mut impl Backend) {
@@ -54,6 +55,7 @@ impl Device {
                 self.updated.push(idx);
             }
         }
+        backend.rewind();
     }
 
     pub async fn run_handler(&mut self, outputs: &[OutputType]) {
@@ -77,9 +79,5 @@ impl Device {
             }
         }
         self.updated.clear();
-    }
-
-    pub fn inputs(&self) -> u8 {
-        self.inputs.len() as u8
     }
 }

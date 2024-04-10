@@ -46,13 +46,12 @@ async fn main(spawner: Spawner) {
     outputs.push(OutputType::UsbOut(UsbOut {}));
 
     // setup
-    //device.add_input(input);
+    device.add_input(input);
     device.add_input(pot_input);
 
     info!("Setting up Stm32Backend...");
     // reset_ctrl setup
-    let inputs = device.inputs();
-    let mut b = Stm32Backend::new(inputs).await;
+    let mut b = Stm32Backend::new().await;
     info!("Stm32Backend setup completed!");
 
     device.init_inputs(&mut b);

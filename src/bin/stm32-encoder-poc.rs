@@ -37,8 +37,7 @@ async fn main(_spawner: Spawner) -> ! {
     // setup
     device.add_input(input);
 
-    let inputs = device.inputs();
-    let mut b = Stm32Backend::new(inputs).await;
+    let mut b = Stm32Backend::new().await;
     device.init_inputs(&mut b);
 
     // operation

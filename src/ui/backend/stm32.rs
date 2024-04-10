@@ -1,6 +1,8 @@
 use embassy_executor::Spawner;
 use embassy_stm32::adc::{Adc, AdcPin, InterruptHandler};
+use embassy_stm32::dma::NoDma;
 use embassy_stm32::gpio::{Flex, Input, Level, Output, Pull, Speed};
+use embassy_stm32::spi::{Config as SpiConfig, Spi};
 use embassy_stm32::time::Hertz;
 use embassy_stm32::usb::Driver;
 use embassy_stm32::{adc, bind_interrupts, peripherals, usb, Config, Peripheral};
@@ -9,6 +11,7 @@ use embassy_usb::class::midi::{MidiClass, Sender};
 use embassy_usb::driver::EndpointError;
 use embassy_usb::Builder;
 
+use defmt::info;
 use static_cell::StaticCell;
 
 use crate::output::CHANNEL;
@@ -26,7 +29,6 @@ type USBDriver = Driver<'static, peripherals::USB>;
 type USBMidiClass = MidiClass<'static, USBDriver>;
 
 pub struct Stm32Backend {
-    inputs: u8,
     addr: u8,
     out_a: Output<'static>,
     out_b: Output<'static>,
@@ -36,10 +38,13 @@ pub struct Stm32Backend {
     adc_pin: peripherals::PA4,
     usb_builder: Option<Builder<'static, USBDriver>>,
     usb_midi_class: Option<USBMidiClass>,
+    spi: Spi<'static, peripherals::SPI1, NoDma, NoDma>,
+    rclk: Output<'static>,
 }
 
 impl Backend for Stm32Backend {
     async fn read_adc(&mut self) -> u16 {
+        self.set_addr();
         self.flex_com.set_as_input(Pull::None);
         let v = self.adc.read(&mut self.adc_pin).await;
         self.next();
@@ -47,10 +52,15 @@ impl Backend for Stm32Backend {
     }
 
     fn read_input(&mut self) -> bool {
+        self.set_addr();
         self.flex_com.set_as_input(Pull::Up);
         let level = self.flex_com.is_high();
         self.next();
         level
+    }
+
+    fn rewind(&mut self) {
+        self.addr = 0;
     }
 }
 
@@ -74,7 +84,7 @@ pub async fn midi_task(mut class: USBMidiClass) -> ! {
 }
 
 impl Stm32Backend {
-    pub async fn new(inputs: u8) -> Self {
+    pub async fn new() -> Self {
         let mut config = Config::default();
         {
             use embassy_stm32::rcc::*;
@@ -141,8 +151,13 @@ impl Stm32Backend {
 
         let mut class = MidiClass::new(&mut builder, 1, 1, 64);
 
+        // default = MODE_0(CPOL = 0, CPHA = 0)
+        let mut spi_config = SpiConfig::default();
+        spi_config.frequency = Hertz(1_000_000);
+
+        let mut spi = Spi::new_txonly(p.SPI1, p.PA5, p.PA7, NoDma, NoDma, spi_config);
+
         Self {
-            inputs: inputs,
             addr: 0,
             out_a: Output::new(p.PA0, Level::Low, Speed::Low),
             out_b: Output::new(p.PA1, Level::Low, Speed::Low),
@@ -152,6 +167,8 @@ impl Stm32Backend {
             adc_pin: p.PA4,
             usb_builder: Some(builder),
             usb_midi_class: Some(class),
+            spi: spi,
+            rclk: Output::new(p.PB0, Level::Low, Speed::Low),
         }
     }
 
@@ -168,36 +185,14 @@ impl Stm32Backend {
     }
 
     fn next(&mut self) {
-        if self.addr == self.inputs {
-            self.addr = 0;
-        } else {
-            self.addr = self.addr + 1;
-        }
-        self.set_addr();
+        self.addr = self.addr + 1;
     }
 
     fn set_addr(&mut self) {
-        let mut addr_tmp = self.addr;
-
-        if (addr_tmp & 1) == 1 {
-            self.out_a.set_high();
-        } else {
-            self.out_a.set_low();
-        }
-        addr_tmp >>= 1;
-
-        if (addr_tmp & 1) == 1 {
-            self.out_b.set_high();
-        } else {
-            self.out_b.set_low();
-        }
-        addr_tmp >>= 1;
-
-        if (addr_tmp & 1) == 1 {
-            self.out_c.set_high();
-        } else {
-            self.out_c.set_low();
-        }
-        addr_tmp >>= 1;
+        let mut buf = [0u8; 1];
+        buf[0] = self.addr;
+        self.spi.blocking_write(&buf);
+        self.rclk.set_high();
+        self.rclk.set_low();
     }
 }

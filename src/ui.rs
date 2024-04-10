@@ -36,4 +36,5 @@ pub enum InputType {
 pub trait Backend {
     async fn read_adc(&mut self) -> u16;
     fn read_input(&mut self) -> bool;
+    fn rewind(&mut self);
 }

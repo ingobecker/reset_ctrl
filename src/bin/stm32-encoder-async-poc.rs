@@ -32,8 +32,7 @@ async fn main(_spawner: Spawner) {
     let mut input = InputType::Encoder(encoder);
     let mut device = Device::new();
 
-    let inputs = device.inputs();
-    let mut b = Stm32Backend::new(inputs).await;
+    let mut b = Stm32Backend::new().await;
 
     let mut outputs: Vec<OutputType, 2> = Vec::new();
     outputs.push(OutputType::StdOut(StdOut {}));
