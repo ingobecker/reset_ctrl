@@ -25,7 +25,9 @@ jobs:
 
       - name: Push commits + 1
         if: ${{ github.event_name == 'push' }}
-        run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.commits }} + 1 ))" >> "${GITHUB_ENV}"
+        env:
+          COMMITS_JSON: ${{ toJson(github.event.commits) }}
+        run: echo "PR_FETCH_DEPTH=$(( $(echo ${COMMITS_JSON}| jq length) + 1 ))" >> "${GITHUB_ENV}"
 
       - name: Check out PR branch and its commits
         uses: actions/checkout@v4
@@ -36,6 +38,16 @@ jobs:
       - name: Fetch the other branch with enough history for a common merge-base commit
         run: |
           git fetch origin ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.event.base_ref }}
+
+      - name: Debug before and after properties
+        env:
+          COMMIT_BEFORE: ${{ github.event.before }}
+          COMMIT_AFTER: ${{ github.event.after }}
+        run: |
+          echo "github.event.before: ${{ github.event.before }}"
+          echo "github.event.after: ${{ github.event.after }}"
+          echo "COMMIT_BEFORE: ${COMMIT_BEFORE}"
+          echo "COMMIT_AFTER: ${COMMIT_AFTER}"
 
       - name: Check for container rebuild
         if: ${{ github.event.before != '' && github.event.after != '' }}
